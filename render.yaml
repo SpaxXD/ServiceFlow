@@ -3,18 +3,8 @@ envGroups:
     envVars:
       - key: NODE_ENV
         value: production
-      - key: DATABASE_URL
-        fromSecret: database_url
       - key: JWT_SECRET
         generateValue: true
-
-  - name: frontend-env
-    envVars:
-      - key: VITE_API_URL
-        fromService:
-          type: web
-          name: serviceflow-backend
-          property: host
 
 services:
   - type: web
@@ -24,6 +14,8 @@ services:
     startCommand: cd backend && npm run db:migrate && npm start
     envVars:
       - envGroup: backend-env
+      - key: DATABASE_URL
+        fromSecret: database_url
 
   - type: web
     name: serviceflow-frontend
@@ -31,4 +23,8 @@ services:
     buildCommand: cd frontend && npm install && npm run build
     staticPublishPath: ./frontend/dist
     envVars:
-      - envGroup: frontend-env
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: serviceflow-backend
+          property: host
