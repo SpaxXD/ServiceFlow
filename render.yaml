@@ -1,9 +1,5 @@
-services:
-  - type: web
-    name: serviceflow-backend
-    runtime: node
-    buildCommand: cd backend && npm install && npm run build && npx prisma generate
-    startCommand: cd backend && npm run db:migrate && npm start
+envGroups:
+  - name: backend-env
     envVars:
       - key: NODE_ENV
         value: production
@@ -12,14 +8,27 @@ services:
       - key: JWT_SECRET
         generateValue: true
 
-  - type: web
-    name: serviceflow-frontend
-    runtime: static
-    buildCommand: cd frontend && npm install && npm run build
-    staticPublishPath: ./frontend/dist
+  - name: frontend-env
     envVars:
       - key: VITE_API_URL
         fromService:
           type: web
           name: serviceflow-backend
           property: host
+
+services:
+  - type: web
+    name: serviceflow-backend
+    runtime: node
+    buildCommand: cd backend && npm install && npm run build && npx prisma generate
+    startCommand: cd backend && npm run db:migrate && npm start
+    envVars:
+      - envGroup: backend-env
+
+  - type: web
+    name: serviceflow-frontend
+    runtime: static
+    buildCommand: cd frontend && npm install && npm run build
+    staticPublishPath: ./frontend/dist
+    envVars:
+      - envGroup: frontend-env
