@@ -1,10 +1,6 @@
-envGroups:
-  - name: backend-env
-    envVars:
-      - key: NODE_ENV
-        value: production
-      - key: JWT_SECRET
-        generateValue: true
+secrets:
+  - name: database_url
+    value: "postgresql://user:password@host:5432/database"  # Placeholder - será sobrescrito no painel do Render
 
 services:
   - type: web
@@ -13,9 +9,12 @@ services:
     buildCommand: cd backend && npm install && npm run build && npx prisma generate
     startCommand: cd backend && npm run db:migrate && npm start
     envVars:
-      - envGroup: backend-env
+      - key: NODE_ENV
+        value: production
       - key: DATABASE_URL
         fromSecret: database_url
+      - key: JWT_SECRET
+        generateValue: true
 
   - type: web
     name: serviceflow-frontend
