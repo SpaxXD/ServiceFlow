@@ -1,0 +1,56 @@
+services:
+  - type: pserv
+    name: serviceflow-database
+    env: postgres
+    plan: starter
+    # Creates a PostgreSQL database
+
+  - type: web
+    name: serviceflow-backend
+    runtime: node
+    plan: starter
+    buildCommand: |
+      cd backend
+      npm ci
+      npm run build
+      npx prisma generate
+    startCommand: |
+      cd backend
+      npm run db:migrate
+      npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: HOST
+        value: 0.0.0.0
+      - key: DATABASE_URL
+        fromDatabase:
+          name: serviceflow-database
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRY
+        value: 15m
+    healthCheckPath: /api/health
+
+  - type: web
+    name: serviceflow-frontend
+    runtime: static
+    plan: starter
+    buildCommand: |
+      cd frontend
+      npm ci
+      npm run build
+    staticPublishPath: ./frontend/dist
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: serviceflow-backend
+          property: host
+    routes:
+      - type: redirect
+        source: /api/(.*)
+        destination: https://serviceflow-backend.onrender.com/api/$1
